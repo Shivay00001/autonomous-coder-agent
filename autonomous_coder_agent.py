@@ -15,7 +15,7 @@ from g4f.client import Client
 
 # Configuration
 API_BASE_URL = "https://api.hcnsec.cn/v1"
-API_KEY = "sk-jXMWVb38vzPyhA5b1E7twKGtEWF2QvC5FjXF0nCsSbWZkNqK"
+API_KEY = os.environ.get("AUTONOMOUS_CODER_API_KEY", "")
 MODEL_NAME = "kimi-k3"
 STATE_FILE = "processed_repos.json"
 QUALITY_REPORT = "quality_report.txt"
