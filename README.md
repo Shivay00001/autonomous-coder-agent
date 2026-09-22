@@ -1,6 +1,6 @@
 <div align="center">
 
-![Autonomous Coder Banner](https://image.pollinations.ai/prompt/abstract-futuristic-technology-background-for-ai-minimalist-dark-mode-glowing-neon-cyberpunk-4k-resolution-no-text?width=1200&height=400&nologo=true)
+![Autonomous Coder Banner](https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1200&h=400&auto=format&fit=crop)
 
 # 🚀 Autonomous AI Coder Agent
 
