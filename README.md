@@ -1,71 +1,49 @@
-<div align="center">
+# autonomous-coder-agent
 
-![Autonomous Coder Banner](https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1200&h=400&auto=format&fit=crop)
+Internal batch tooling for cleaning up and documenting the owner's own GitHub
+repositories. It is a single script (`autonomous_coder_agent.py`) — not a product,
+not a framework.
 
-# 🚀 Autonomous AI Coder Agent
+## What it actually does
 
-An elite, multi-model Autonomous AI Software Engineer designed to discover, analyze, auto-fix, and automatically update GitHub repositories using advanced Large Language Models (LLMs).
+1. Lists repos for the authenticated `gh` CLI user.
+2. Clones each repo not yet recorded in `processed_repos.json`.
+3. Runs a syntax/build check (Python `py_compile`, Node `npm run build` if present).
+4. If the check fails, sends the failing file + error to an LLM and asks for a fix,
+   then re-checks (bounded retries).
+5. Asks the LLM to write a fresh `README.md` based on the repo's actual code.
+6. Commits and **force-pushes to `main`**, records the repo as processed, deletes
+   the local clone.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![AI-Powered](https://img.shields.io/badge/AI-Powered-FF9900.svg)](https://github.com/features/copilot)
+## Setup
 
-</div>
-
-## 📖 About
-The **Autonomous AI Coder Agent** is a cutting-edge script that acts as your robotic DevOps engineer and senior developer. It continuously pulls target repositories, rigorously checks execution and syntax (Python, Node.js), and employs an array of AI models—including OpenAI, HuggingFace, and G4F—in a robust fallback cascade to intelligently debug and auto-fix execution errors. Once verified, it automatically generates a professional, repository-specific README and safely force-pushes the robust updates back to the `main` branch. 
-
-Ideal for maintaining large-scale automation, scaling open-source contributions, and keeping dormant repositories functional and modern!
-
-## ✨ Key Features
-- **Multi-Model AI Cascade:** Integrates with OpenAI, AiHubMix, HuggingFace, and G4F (gpt-4o, claude-3.5-sonnet, gemini-1.5-pro, llama-3.1).
-- **Execution & Syntax Verification:** Automatically detects Node.js (`package.json`) and Python ecosystems, triggering relevant builds, checks, and syntax tests.
-- **Self-Healing Auto-Fix Loop:** If a repository fails compilation or execution, the agent reads the context and sends the trace to the AI for a self-healing patch.
-- **Intelligent Documentation Generation:** Uses AI to generate objective, high-quality, SEO-optimized `README.md` files based entirely on the actual codebase.
-- **Safe CI/CD & Git Automation:** Safely clones, commits, and utilizes `git push --force-with-lease` for maintaining an autonomous update loop.
-
-## ⚙️ Architecture & How It Works
-
-```mermaid
-graph TD
-    A[Start] --> B[Fetch Repos via gh CLI]
-    B --> C{Already Processed?}
-    C -- Yes --> D[Skip]
-    C -- No --> E[Clone Repository]
-    E --> F[Detect Env & Run Syntax/Build Check]
-    F --> G{Execution Success?}
-    G -- No --> H[AI Auto-Fix & Replace Broken File]
-    H --> F
-    G -- Yes --> I[Gather Code Context]
-    I --> J[Generate Workability Assessment]
-    J --> K[Generate Elite README.md]
-    K --> L[Commit & Push to Main Branch]
-    L --> M[Log Success & Cleanup]
-```
-
-## 🛠️ Installation & Setup
-
-1. **Prerequisites**: Ensure you have Python 3.8+ installed, along with Git and the GitHub CLI (`gh`).
-2. **Clone this repository**:
-```bash
-git clone https://github.com/yourusername/autonomous-coder-agent.git
-cd autonomous-coder-agent
-```
-3. **Install Dependencies**:
 ```bash
 pip install openai g4f
-```
-4. **Configure your API keys**: Open `autonomous_coder_agent.py` and modify the `API_BASE_URL` and `API_KEY` configurations to match your provider.
-
-## 🚀 Usage
-
-Authenticate your GitHub CLI first:
-```bash
 gh auth login
-```
-
-Run the autonomous agent:
-```bash
+export AUTONOMOUS_CODER_API_KEY="<your-key>"
 python autonomous_coder_agent.py
 ```
-*The agent will sequentially process up to 300 repositories, generate a local `quality_report.txt`, and maintain state in `processed_repos.json`.*
+
+The API key is read from the `AUTONOMOUS_CODER_API_KEY` environment variable —
+never hardcode it in the script. (Older commits in this repo's git history contain
+hardcoded keys; those keys must be treated as compromised and rotated. History was
+intentionally not rewritten.)
+
+## Model configuration
+
+- Default base URL: `https://api.hcnsec.cn/v1` (a third-party OpenAI-compatible
+  relay), default model `kimi-k3`. Point `API_BASE_URL`/`MODEL_NAME` at your own
+  provider before running.
+- Fallback chain: primary OpenAI-compatible client → g4f → Pollinations →
+  AiHubMix → HuggingFace inference. `g4f` is an unofficial community package, not
+  affiliated with OpenAI; treat its outputs accordingly.
+
+## Limitations and warnings
+
+- **Destructive by design**: it force-pushes to `main`. Only run it against
+  repositories you own, and only with a clean backup/remote you can recover from.
+- Fix quality depends entirely on the model; every auto-fix should be reviewed in
+  the commit history.
+- Requires `gh` CLI authentication and network access to your LLM provider.
+- State lives in local `processed_repos.json` / `quality_report.txt`; deleting
+  them re-processes everything.
